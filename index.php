@@ -54,6 +54,8 @@ if ( is_writable ( ABSPATH . 'manifest.json' ) || !file_exists ( ABSPATH . 'mani
     <br />
     <br />
 
+    <div>kogekogekoge</div>
+
     <div class="js-curl-command"></div>
 
     <script src="config.js.php"></script>
