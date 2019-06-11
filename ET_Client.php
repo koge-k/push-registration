@@ -35,27 +35,15 @@ class ET_Client extends SoapClient {
 		$this->debugSOAP = $debug;
 		
 		if (!property_exists($this,'clientId') || is_null($this->clientId) || !property_exists($this,'clientSecret') || is_null($this->clientSecret)){
-var_dump(1);
-
 			throw new Exception('clientid or clientsecret is null: Must be provided in config file or passed when instantiating ET_Client');
 		}
 		
-var_dump(2);
-		if ($getWSDL){
-var_dump(3);
-$this->CreateWSDL($this->wsdlLoc);
-var_dump(4);
-}
+		if ($getWSDL){$this->CreateWSDL($this->wsdlLoc);}
 		
 		if ($params && array_key_exists('jwt', $params)){
-var_dump(5);
-
 			if (!property_exists($this,'appsignature') || is_null($this->appsignature)){
-var_dump(6);
 				throw new Exception('Unable to utilize JWT for SSO without appsignature: Must be provided in config file or passed when instantiating ET_Client');
 			}
-var_dump(7);
-
 			$decodedJWT = JWT::decode($params['jwt'], $this->appsignature);
 			$dv = new DateInterval('PT'.$decodedJWT->request->user->expiresIn.'S');
 			$newexpTime = new DateTime();
@@ -64,22 +52,35 @@ var_dump(7);
 			$this->setRefreshToken($this->tenantKey, $decodedJWT->request->user->refreshToken);
 			$this->packageName = $decodedJWT->request->application->package;
 		}		
+var_dump(1);
+
 		$this->refreshToken();
+var_dump(2);
 
 		try {
 			$url = "https://www.exacttargetapis.com/platform/v1/endpoints/soap?access_token=".$this->getAuthToken($this->tenantKey);
+var_dump(3);
 			$endpointResponse = restGet($url);			
+var_dump(4);
 			$endpointObject = json_decode($endpointResponse->body);			
+var_dump(5);
 			if ($endpointObject && property_exists($endpointObject,"url")){
+var_dump(6);
 				$this->endpoint = $endpointObject->url;			
 			} else {
+var_dump(7);
 				throw new Exception('Unable to determine stack using /platform/v1/endpoints/:'.$endpointResponse->body);			
 			}
+var_dump(8);
 			} catch (Exception $e) {
 			throw new Exception('Unable to determine stack using /platform/v1/endpoints/: '.$e->getMessage());
 		} 		
+var_dump(9);
+
 		parent::__construct($this->xmlLoc, array('trace'=>1, 'exceptions'=>0,'connection_timeout'=>120));
 		parent::__setLocation($this->endpoint);
+var_dump(10);
+
 	}
 	
 	function refreshToken($forceRefresh = false) {
