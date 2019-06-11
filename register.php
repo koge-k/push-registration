@@ -11,6 +11,9 @@ var_dump(0);
 		$dataExtensionExternalKey = getenv('PUSH_REGISTRATION_DE_EXTERNAL_KEY');
 		$dataExtensionName = getenv('PUSH_REGISTRATION_DE_NAME');
 			
+var_dump('$dataExtensionExternalKey:',$dataExtensionExternalKey);
+var_dump('$dataExtensionName:',$dataExtensionName);
+
 		// Add a row to a DataExtension 
 		$request_body = file_get_contents('php://input');
 		$request_data = json_decode($request_body);
