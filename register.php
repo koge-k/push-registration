@@ -6,7 +6,7 @@ use Minishlink\WebPush\WebPush;
 
 try {	
 var_dump(0);
-		$myclient = new ET_Client();
+//		$myclient = new ET_Client();
 
 		$dataExtensionExternalKey = getenv('PUSH_REGISTRATION_DE_EXTERNAL_KEY');
 		$dataExtensionName = getenv('PUSH_REGISTRATION_DE_NAME');
