@@ -52,49 +52,45 @@ class ET_Client extends SoapClient {
 			$this->setRefreshToken($this->tenantKey, $decodedJWT->request->user->refreshToken);
 			$this->packageName = $decodedJWT->request->application->package;
 		}		
-var_dump(1);
-
 		$this->refreshToken();
-var_dump(2);
 
 		try {
 			$url = "https://www.exacttargetapis.com/platform/v1/endpoints/soap?access_token=".$this->getAuthToken($this->tenantKey);
-var_dump(3);
 			$endpointResponse = restGet($url);			
-var_dump(4);
 			$endpointObject = json_decode($endpointResponse->body);			
-var_dump(5);
 			if ($endpointObject && property_exists($endpointObject,"url")){
-var_dump(6);
 				$this->endpoint = $endpointObject->url;			
 			} else {
-var_dump(7);
 				throw new Exception('Unable to determine stack using /platform/v1/endpoints/:'.$endpointResponse->body);			
 			}
-var_dump(8);
 			} catch (Exception $e) {
 			throw new Exception('Unable to determine stack using /platform/v1/endpoints/: '.$e->getMessage());
 		} 		
-var_dump(9);
-
 		parent::__construct($this->xmlLoc, array('trace'=>1, 'exceptions'=>0,'connection_timeout'=>120));
 		parent::__setLocation($this->endpoint);
-var_dump(10);
-
 	}
 	
 	function refreshToken($forceRefresh = false) {
+var_dump(1);
+
 		if (property_exists($this, "sdl") && $this->sdl == 0){
+var_dump(2);
 			parent::__construct($this->xmlLoc, array('trace'=>1, 'exceptions'=>0));	
+var_dump(3);
 		}
 		try {
+var_dump(4);
 			$currentTime = new DateTime();
+var_dump(5);
 			if (is_null($this->getAuthTokenExpiration($this->tenantKey))){
+var_dump(6);
 				$timeDiff = 0;
 			} else {
+var_dump(7);
 				$timeDiff = $currentTime->diff($this->getAuthTokenExpiration($this->tenantKey))->format('%i');
 				$timeDiff = $timeDiff  + (60 * $currentTime->diff($this->getAuthTokenExpiration($this->tenantKey))->format('%H'));
 			}
+var_dump(8);
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
