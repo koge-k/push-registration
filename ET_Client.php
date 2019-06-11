@@ -11,47 +11,51 @@ class ET_Client extends SoapClient {
 	function __construct($getWSDL = false, $debug = false, $params = null) {	
 		$tenantTokens = array();
 		$config = false;
-var_dump(1);
+
 		$this->xmlLoc = 'ExactTargetWSDL.xml';
-var_dump(2);
 
 		if (file_exists(realpath(__DIR__ . "/config.php")))
 			$config = include 'config.php';
-var_dump(3);
 
 		if ($config){
-var_dump(4);
 			$this->wsdlLoc = $config['defaultwsdl'];
 			$this->clientId = $config['clientid'];
 			$this->clientSecret = $config['clientsecret'];
 			$this->appsignature = $config['appsignature'];
 			if (array_key_exists('xmlloc', $config)){$this->xmlLoc = $config['xmlloc'];}
-var_dump(5);
 		} else {
-var_dump(6);
 			if ($params && array_key_exists('defaultwsdl', $params)){$this->wsdlLoc = $params['defaultwsdl'];}
 			else {$this->wsdlLoc = "https://webservice.exacttarget.com/etframework.wsdl";}
 			if ($params && array_key_exists('clientid', $params)){$this->clientId = $params['clientid'];}
 			if ($params && array_key_exists('clientsecret', $params)){$this->clientSecret = $params['clientsecret'];}
 			if ($params && array_key_exists('appsignature', $params)){$this->appsignature = $params['appsignature'];}
 			if ($params && array_key_exists('xmlloc', $params)){$this->xmlLoc = $params['xmlloc'];}
-var_dump(7);
 		}
 		
-var_dump(8);
-
 		$this->debugSOAP = $debug;
 		
 		if (!property_exists($this,'clientId') || is_null($this->clientId) || !property_exists($this,'clientSecret') || is_null($this->clientSecret)){
+var_dump(1);
+
 			throw new Exception('clientid or clientsecret is null: Must be provided in config file or passed when instantiating ET_Client');
 		}
 		
-		if ($getWSDL){$this->CreateWSDL($this->wsdlLoc);}
+var_dump(2);
+		if ($getWSDL){
+var_dump(3);
+$this->CreateWSDL($this->wsdlLoc);
+var_dump(4);
+}
 		
 		if ($params && array_key_exists('jwt', $params)){
+var_dump(5);
+
 			if (!property_exists($this,'appsignature') || is_null($this->appsignature)){
+var_dump(6);
 				throw new Exception('Unable to utilize JWT for SSO without appsignature: Must be provided in config file or passed when instantiating ET_Client');
 			}
+var_dump(7);
+
 			$decodedJWT = JWT::decode($params['jwt'], $this->appsignature);
 			$dv = new DateInterval('PT'.$decodedJWT->request->user->expiresIn.'S');
 			$newexpTime = new DateTime();
