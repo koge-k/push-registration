@@ -85,18 +85,32 @@ class ET_Client extends SoapClient {
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://auth.exacttargetapis.com/v1/requestToken?legacy=1"
+						? "https://mcs7-l1cxy5t4d27yhv3jk5rgc5m.auth.marketingcloudapis.com/v2/token"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
-				$jsonRequest = new stdClass(); 
+				$jsonRequest = new stdClass();
+
+				$jsonRequest->grant_type = 'client_credentials';
 				$jsonRequest->clientId = $this->clientId;
 				$jsonRequest->clientSecret = $this->clientSecret;
-				$jsonRequest->accessType = "offline";
-				if (!is_null($this->getRefreshToken($this->tenantKey))){
-					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
-				}
+				$jsonRequest->scope = 'email_read email_write email_send';
+				$jsonRequest->account_id = 'ad2677d4-1612-4b6d-b4f2-f8f791c1b810';
+
+
+
 				$authResponse = restPost($url, json_encode($jsonRequest));
 				$authObject = json_decode($authResponse->body);
 				
+
+
+
+
+
+
+
+
+
+
+
 var_dump($authObject);
 
 				if ($authResponse && property_exists($authObject,"accessToken")){		
