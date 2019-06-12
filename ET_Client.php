@@ -85,8 +85,11 @@ class ET_Client extends SoapClient {
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://mcc289rsykf7bklym5hlwv5n40n4.auth.marketingcloudapis.com/v2/token?legacy=1"
+						? "https://auth.exacttargetapis.com/v1/requestToken?legacy=1"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
+var_dump($url, $this->tenantKey);
+
+
 				$jsonRequest = new stdClass(); 
 				$jsonRequest->clientId = $this->clientId;
 				$jsonRequest->clientSecret = $this->clientSecret;
