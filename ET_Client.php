@@ -85,16 +85,14 @@ class ET_Client extends SoapClient {
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://mcs7-l1cxy5t4d27yhv3jk5rgc5m.auth.marketingcloudapis.com/v1/requestToken"
+						? "https://mcs7-l1cxy5t4d27yhv3jk5rgc5m.auth.marketingcloudapis.com/v2/authorize"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
 				$jsonRequest = new stdClass(); 
-				$jsonRequest->clientId = $this->clientId;
-				$jsonRequest->clientSecret = $this->clientSecret;
-				$jsonRequest->accessType = "offline";
-				if (!is_null($this->getRefreshToken($this->tenantKey))){
-					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
-				}
-var_dump($url, $jsonRequest);
+				$jsonRequest->response_type = 'code';
+				$jsonRequest->client_id = $this->clientId;
+				$jsonRequest->redirect_uri = 'https://web-push-000.herokuapp.com';
+
+var_dump($jsonRequest);
 
 				$authResponse = restPost($url, json_encode($jsonRequest));
 				$authObject = json_decode($authResponse->body);
