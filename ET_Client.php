@@ -85,7 +85,7 @@ class ET_Client extends SoapClient {
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://auth.exacttargetapis.com/v1/requestToken?legacy=1"
+						? "https://login.salesforce.com/services/oauth2/token"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
 				$jsonRequest = new stdClass(); 
 				$jsonRequest->clientId = $this->clientId;
@@ -94,11 +94,7 @@ class ET_Client extends SoapClient {
 				if (!is_null($this->getRefreshToken($this->tenantKey))){
 					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
 				}
-var_dump(1);
 				$authResponse = restPost($url, json_encode($jsonRequest));
-var_dump(2);
-var_dump($authResponse->body);
-
 				$authObject = json_decode($authResponse->body);
 				
 				if ($authResponse && property_exists($authObject,"accessToken")){		
