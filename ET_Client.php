@@ -88,6 +88,9 @@ class ET_Client extends SoapClient {
 						? "https://login.salesforce.com/services/oauth2/token"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
 				$jsonRequest = new stdClass(); 
+				$jsonRequest->grant_type = "password";
+
+
 				$jsonRequest->clientId = $this->clientId;
 				$jsonRequest->clientSecret = $this->clientSecret;
 				$jsonRequest->accessType = "offline";
