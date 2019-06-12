@@ -94,7 +94,11 @@ class ET_Client extends SoapClient {
 				if (!is_null($this->getRefreshToken($this->tenantKey))){
 					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
 				}
-				$authResponse = restPost($url, json_encode($jsonRequest));
+$post = json_encode($jsonRequest);
+var_dump($post);
+
+
+				$authResponse = restPost($url, $post);
 				$authObject = json_decode($authResponse->body);
 				
 				if ($authResponse && property_exists($authObject,"accessToken")){		
