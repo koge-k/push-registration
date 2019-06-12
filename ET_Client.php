@@ -85,35 +85,18 @@ class ET_Client extends SoapClient {
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://mcs7-l1cxy5t4d27yhv3jk5rgc5m.auth.marketingcloudapis.com/v2/token"
+						? "https://mcs7-l1cxy5t4d27yhv3jk5rgc5m.auth.marketingcloudapis.com/v1/requestToken?legacy=1"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
-				$jsonRequest = new stdClass();
-
-				$jsonRequest->grant_type = 'client_credentials';
+				$jsonRequest = new stdClass(); 
 				$jsonRequest->clientId = $this->clientId;
 				$jsonRequest->clientSecret = $this->clientSecret;
-				$jsonRequest->scope = 'email_read email_write email_send';
-				$jsonRequest->account_id = 'koge.k';
-
-var_dump($jsonRequest);
-
-
+				$jsonRequest->accessType = "offline";
+				if (!is_null($this->getRefreshToken($this->tenantKey))){
+					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
+				}
 				$authResponse = restPost($url, json_encode($jsonRequest));
 				$authObject = json_decode($authResponse->body);
 				
-
-
-
-
-
-
-
-
-
-
-
-var_dump($authObject);
-
 				if ($authResponse && property_exists($authObject,"accessToken")){		
 					
 					$dv = new DateInterval('PT'.$authObject->expiresIn.'S');
