@@ -53,26 +53,19 @@ class ET_Client extends SoapClient {
 			$this->packageName = $decodedJWT->request->application->package;
 		}		
 		$this->refreshToken();
-var_dump(1);
 
 		try {
 			$url = "https://www.exacttargetapis.com/platform/v1/endpoints/soap?access_token=".$this->getAuthToken($this->tenantKey);
 			$endpointResponse = restGet($url);			
 			$endpointObject = json_decode($endpointResponse->body);			
 			if ($endpointObject && property_exists($endpointObject,"url")){
-var_dump(2);
-
 				$this->endpoint = $endpointObject->url;			
 			} else {
-var_dump(3);
 				throw new Exception('Unable to determine stack using /platform/v1/endpoints/:'.$endpointResponse->body);			
 			}
 			} catch (Exception $e) {
-var_dump(4);
 			throw new Exception('Unable to determine stack using /platform/v1/endpoints/: '.$e->getMessage());
 		} 		
-var_dump(5);
-
 		parent::__construct($this->xmlLoc, array('trace'=>1, 'exceptions'=>0,'connection_timeout'=>120));
 		parent::__setLocation($this->endpoint);
 	}
@@ -92,7 +85,7 @@ var_dump(5);
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://auth.exacttargetapis.com/v1/requestToken?legacy=1"
+						? "https://mcc289rsykf7bklym5hlwv5n40n4.auth.marketingcloudapis.com/v2/token?legacy=1"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
 				$jsonRequest = new stdClass(); 
 				$jsonRequest->clientId = $this->clientId;
