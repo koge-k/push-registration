@@ -95,12 +95,7 @@ class ET_Client extends SoapClient {
 				$jsonRequest->password      = '@kkkk3690';
 
 
-				$jsonRequest->clientId = $this->clientId;
-				$jsonRequest->clientSecret = $this->clientSecret;
-				$jsonRequest->accessType = "offline";
-				if (!is_null($this->getRefreshToken($this->tenantKey))){
-					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
-				}
+
 $post = json_encode($jsonRequest);
 var_dump($post);
 
