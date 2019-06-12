@@ -101,24 +101,33 @@ var_dump($post);
 
 
 				$authResponse = restPost($url, $post);
-var_dump(999);
 
 				$authObject = json_decode($authResponse->body);
+var_dump(authObject);
 				
 				if ($authResponse && property_exists($authObject,"accessToken")){		
 					
+var_dump(1);
+
 					$dv = new DateInterval('PT'.$authObject->expiresIn.'S');
 					$newexpTime = new DateTime();
 					$this->setAuthToken($this->tenantKey, $authObject->accessToken, $newexpTime->add($dv));
 					$this->setInternalAuthToken($this->tenantKey, $authObject->legacyToken);					
 					if (property_exists($authObject,'refreshToken')){
+var_dump(2);
+
 						$this->setRefreshToken($this->tenantKey, $authObject->refreshToken);
 					}
 				} else {
+var_dump(3);
 					throw new Exception('Unable to validate App Keys(ClientID/ClientSecret) provided, requestToken response:'.$authResponse->body );			
 				}				
 			}
+var_dump(4);
+
 		} catch (Exception $e) {
+var_dump(5);
+
 			throw new Exception('Unable to validate App Keys(ClientID/ClientSecret) provided.: '.$e->getMessage());
 		}
 	}
