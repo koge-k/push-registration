@@ -88,10 +88,10 @@ class ET_Client extends SoapClient {
 						? "https://login.salesforce.com/services/oauth2/token"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
 				$jsonRequest = new stdClass(); 
-				$jsonRequest->grant_type    = "password";
+				$jsonRequest->grant_type    = 'password';
 				$jsonRequest->client_id     = $this->clientId;
 				$jsonRequest->client_secret = $this->clientSecret;
-				$jsonRequest->username      = 'koge.k@dentsudigital.co.jp';
+				$jsonRequest->username      = 'koge.k';
 				$jsonRequest->password      = '@kkkk3690';
 
 
@@ -1736,14 +1736,14 @@ function restGet($url) {
 	*
  * @return string     The response payload from the REST service
  */
-function restPost($url, $content, $access_token = '') {
+function restPost($url, $content) {
 	$ch = curl_init();
 	
 	// Uses the URL passed in that is specific to the API used
 	curl_setopt($ch, CURLOPT_URL, $url);	
 	
 	// When posting to a Fuel API, content-type has to be explicitly set to application/json
-	$headers = array("Content-Type: application/json", "Authorization: OAuth ${access_token}");
+	$headers = array("Content-Type: application/json", "User-Agent: ".getSDKVersion());
 	curl_setopt ($ch, CURLOPT_HTTPHEADER, $headers);
 	
 	// The content is the JSON payload that defines the request
