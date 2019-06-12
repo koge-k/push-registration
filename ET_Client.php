@@ -93,7 +93,7 @@ class ET_Client extends SoapClient {
 				$jsonRequest->clientId = $this->clientId;
 				$jsonRequest->clientSecret = $this->clientSecret;
 				$jsonRequest->scope = 'email_read email_write email_send';
-				$jsonRequest->account_id = 'ad2677d4-1612-4b6d-b4f2-f8f791c1b810';
+				$jsonRequest->account_id = 'koge.k';
 
 var_dump($jsonRequest);
 
