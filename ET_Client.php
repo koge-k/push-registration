@@ -103,7 +103,7 @@ var_dump($post);
 				$authResponse = restPost($url, $post);
 
 				$authObject = json_decode($authResponse->body);
-var_dump(authObject);
+var_dump($authObject);
 				
 				if ($authResponse && property_exists($authObject,"accessToken")){		
 					
