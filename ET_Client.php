@@ -85,49 +85,32 @@ class ET_Client extends SoapClient {
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://login.salesforce.com/services/oauth2/token"
+						? "https://auth.exacttargetapis.com/v1/requestToken?legacy=1"
 						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
 				$jsonRequest = new stdClass(); 
-				$jsonRequest->grant_type    = 'password';
-				$jsonRequest->client_id     = $this->clientId;
-				$jsonRequest->client_secret = $this->clientSecret;
-				$jsonRequest->username      = 'koge.k';
-				$jsonRequest->password      = '@kkkk3690';
-
-
-
-$post = json_encode($jsonRequest);
-var_dump($post);
-
-
-				$authResponse = restPost($url, $post);
-
+				$jsonRequest->clientId = $this->clientId;
+				$jsonRequest->clientSecret = $this->clientSecret;
+				$jsonRequest->accessType = "offline";
+				if (!is_null($this->getRefreshToken($this->tenantKey))){
+					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
+				}
+				$authResponse = restPost($url, json_encode($jsonRequest));
 				$authObject = json_decode($authResponse->body);
-var_dump($authObject);
 				
 				if ($authResponse && property_exists($authObject,"accessToken")){		
 					
-var_dump(1);
-
 					$dv = new DateInterval('PT'.$authObject->expiresIn.'S');
 					$newexpTime = new DateTime();
 					$this->setAuthToken($this->tenantKey, $authObject->accessToken, $newexpTime->add($dv));
 					$this->setInternalAuthToken($this->tenantKey, $authObject->legacyToken);					
 					if (property_exists($authObject,'refreshToken')){
-var_dump(2);
-
 						$this->setRefreshToken($this->tenantKey, $authObject->refreshToken);
 					}
 				} else {
-var_dump(3);
 					throw new Exception('Unable to validate App Keys(ClientID/ClientSecret) provided, requestToken response:'.$authResponse->body );			
 				}				
 			}
-var_dump(4);
-
 		} catch (Exception $e) {
-var_dump(5);
-
 			throw new Exception('Unable to validate App Keys(ClientID/ClientSecret) provided.: '.$e->getMessage());
 		}
 	}
