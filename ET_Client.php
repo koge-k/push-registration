@@ -85,10 +85,14 @@ class ET_Client extends SoapClient {
 
             if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
                 $url = $this->tenantKey == null 
-                        ? "https://login.salesforce.com/services/oauth2/token"
+                        ? "https://login.salesforce.com/services/oauth2/authorize"
                         : "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
                 $jsonRequest = new stdClass();
+                $jsonRequest->response_type = "code";
                 $jsonRequest->client_id = $this->clientId;
+                $jsonRequest->redirect_uri = https://web-push-001.herokuapp.com/;
+
+
                 $jsonRequest->client_secret = $this->clientSecret;
                 if (!is_null($this->getRefreshToken($this->tenantKey))){
                     $jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
@@ -120,7 +124,6 @@ var_dump($authObject);
     }
 
     function __getLastResponseHTTPCode(){
-
         return $this->lastHTTPCode;
     }
 
