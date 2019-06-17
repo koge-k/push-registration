@@ -90,7 +90,7 @@ class ET_Client extends SoapClient {
                 $jsonRequest = new stdClass();
                 $jsonRequest->response_type = "code";
                 $jsonRequest->client_id = $this->clientId;
-                $jsonRequest->redirect_uri = https://web-push-001.herokuapp.com/;
+                $jsonRequest->redirect_uri = "https://web-push-001.herokuapp.com/";
 
 
                 $jsonRequest->client_secret = $this->clientSecret;
