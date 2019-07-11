@@ -4,10 +4,13 @@ require('JWT.php');
 
 class ET_Client extends SoapClient {
 	public $packageName, $packageFolders, $parentFolders;
-	private $wsdlLoc, $debugSOAP, $lastHTTPCode, $clientId, 
-			$clientSecret, $appsignature, $endpoint, 
-			$tenantTokens, $tenantKey, $xmlLoc;
-		
+	private $wsdlLoc, $debugSOAP, $lastHTTPCode, $clientId,
+			$clientSecret, $appsignature, $endpoint,
+			$tenantTokens, $tenantKey, $xmlLoc,
+			$baseAuthUrl, $baseSoapUrl, $useOAuth2Authentication, $accountId, $scope;
+
+	private $defaultBaseSoapUrl = 'https://webservice.exacttarget.com';
+
 	function __construct($getWSDL = false, $debug = false, $params = null) {	
 		$tenantTokens = array();
 		$config = false;
@@ -22,6 +25,26 @@ class ET_Client extends SoapClient {
 			$this->clientId = $config['clientid'];
 			$this->clientSecret = $config['clientsecret'];
 			$this->appsignature = $config['appsignature'];
+
+			$this->baseAuthUrl = $config["baseAuthUrl"];
+			if (array_key_exists('baseSoapUrl', $config)) {
+				if (!empty($config["baseSoapUrl"])) {
+					$this->baseSoapUrl = $config["baseSoapUrl"];
+				} else {
+					$this->baseSoapUrl = $this->defaultBaseSoapUrl;
+				}
+			}
+			if(array_key_exists('useOAuth2Authentication', $config)){$this->useOAuth2Authentication = $config['useOAuth2Authentication'];}
+			if(array_key_exists("baseUrl", $config))
+			{
+				$this->baseUrl = $config["baseUrl"];
+			}
+			else if(!$this->useOAuth2Authentication) {
+				throw new Exception("baseUrl is null: Must be provided in config file when instantiating ET_Client");
+			}
+            if (array_key_exists('accountId', $config)){$this->accountId = $config['accountId'];}
+            if (array_key_exists('scope', $config)){$this->scope = $config['scope'];}
+
 			if (array_key_exists('xmlloc', $config)){$this->xmlLoc = $config['xmlloc'];}
 		} else {
 			if ($params && array_key_exists('defaultwsdl', $params)){$this->wsdlLoc = $params['defaultwsdl'];}
@@ -31,7 +54,55 @@ class ET_Client extends SoapClient {
 			if ($params && array_key_exists('appsignature', $params)){$this->appsignature = $params['appsignature'];}
 			if ($params && array_key_exists('xmlloc', $params)){$this->xmlLoc = $params['xmlloc'];}
 		}
-		
+
+		if ($params) 
+		{
+			if (array_key_exists('defaultwsdl', $params)){$this->wsdlLoc = $params['defaultwsdl'];}
+			else {$this->wsdlLoc = "https://webservice.exacttarget.com/etframework.wsdl";}
+			if (array_key_exists('clientid', $params)){$this->clientId = $params['clientid'];}
+			if (array_key_exists('clientsecret', $params)){$this->clientSecret = $params['clientsecret'];}
+			if (array_key_exists('appsignature', $params)){$this->appsignature = $params['appsignature'];}
+			if (array_key_exists('xmlloc', $params)){$this->xmlLoc = $params['xmlloc'];}
+
+
+			if (array_key_exists('baseUrl', $params))
+			{
+				$this->baseUrl = $params['baseUrl'];
+			}
+			else 
+			{
+				$this->baseUrl = "https://www.exacttargetapis.com";
+			}
+			if (array_key_exists('baseAuthUrl', $params))
+			{
+				$this->baseAuthUrl = $params['baseAuthUrl'];
+			}
+			else 
+			{
+				$this->baseAuthUrl = "https://auth.exacttargetapis.com";
+			}
+			if (array_key_exists('baseSoapUrl', $params))
+			{
+				if (!empty($params["baseSoapUrl"])) {
+					$this->baseSoapUrl = $params['baseSoapUrl'];
+				} else {
+                    $this->baseSoapUrl = $this->defaultBaseSoapUrl;
+				}
+			}
+			if (array_key_exists('useOAuth2Authentication', $params))
+			{
+                $this->useOAuth2Authentication = $params['useOAuth2Authentication'];
+			}
+            if (array_key_exists('accountId', $params))
+            {
+                $this->accountId = $params['accountId'];
+            }
+            if (array_key_exists('scope', $params))
+            {
+                $this->scope = $params['scope'];
+            }
+		}
+
 		$this->debugSOAP = $debug;
 		
 		if (!property_exists($this,'clientId') || is_null($this->clientId) || !property_exists($this,'clientSecret') || is_null($this->clientSecret)){
@@ -51,26 +122,38 @@ class ET_Client extends SoapClient {
 			$this->setInternalAuthToken($this->tenantKey, $decodedJWT->request->user->internalOauthToken);
 			$this->setRefreshToken($this->tenantKey, $decodedJWT->request->user->refreshToken);
 			$this->packageName = $decodedJWT->request->application->package;
-		}		
+		}
+		// 下記は省略してもbaseSoapUrlを設定済みなら動く
 		$this->refreshToken();
 
+	if ($this->baseSoapUrl) {
+		$this->endpoint = rtrim($this->baseSoapUrl, '/') . '/Service.asmx';
+	} else {
+
 		try {
-			$url = "https://www.exacttargetapis.com/platform/v1/endpoints/soap?access_token=".$this->getAuthToken($this->tenantKey);
+			$url = rtrim($this->baseUrl, '/')."/platform/v1/endpoints/soap?access_token=".$this->getAuthToken($this->tenantKey);
 			$endpointResponse = restGet($url);			
-			$endpointObject = json_decode($endpointResponse->body);			
+			$endpointObject = json_decode($endpointResponse->body);	
 			if ($endpointObject && property_exists($endpointObject,"url")){
 				$this->endpoint = $endpointObject->url;			
 			} else {
 				throw new Exception('Unable to determine stack using /platform/v1/endpoints/:'.$endpointResponse->body);			
 			}
-			} catch (Exception $e) {
+		} catch (Exception $e) {
 			throw new Exception('Unable to determine stack using /platform/v1/endpoints/: '.$e->getMessage());
-		} 		
+		}
+	}
+
 		parent::__construct($this->xmlLoc, array('trace'=>1, 'exceptions'=>0,'connection_timeout'=>120));
 		parent::__setLocation($this->endpoint);
 	}
-	
+
 	function refreshToken($forceRefresh = false) {
+		if ($this->useOAuth2Authentication) {
+            $this->refreshTokenWithOAuth2($forceRefresh);
+            return;
+		}
+
 		if (property_exists($this, "sdl") && $this->sdl == 0){
 			parent::__construct($this->xmlLoc, array('trace'=>1, 'exceptions'=>0));	
 		}
@@ -85,28 +168,17 @@ class ET_Client extends SoapClient {
 
 			if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
 				$url = $this->tenantKey == null 
-						? "https://mcs7-l1cxy5t4d27yhv3jk5rgc5m.auth.marketingcloudapis.com/v2/token"
-						: "https://www.exacttargetapis.com/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
-				$jsonRequest = new stdClass();
-				$jsonRequest->grant_type = "client_credentials";
-				$jsonRequest->client_id = $this->clientId;
-				$jsonRequest->client_secret = $this->clientSecret;
-
-
+						? rtrim($this->baseAuthUrl, '/')."/v1/requestToken?legacy=1"
+						: rtrim($this->baseUrl, '/')."/provisioning/v1/tenants/{$this->tenantKey}/requestToken?legacy=1";
+				$jsonRequest = new stdClass(); 
+				$jsonRequest->clientId = $this->clientId;
+				$jsonRequest->clientSecret = $this->clientSecret;
+				$jsonRequest->accessType = "offline";
 				if (!is_null($this->getRefreshToken($this->tenantKey))){
 					$jsonRequest->refreshToken = $this->getRefreshToken($this->tenantKey);
 				}
-
-var_dump($url, json_encode($jsonRequest));
-
 				$authResponse = restPost($url, json_encode($jsonRequest));
-
-var_dump($authResponse);
-
 				$authObject = json_decode($authResponse->body);
-
-var_dump($authObject);
-
 				
 				if ($authResponse && property_exists($authObject,"accessToken")){		
 					
@@ -125,7 +197,55 @@ var_dump($authObject);
 			throw new Exception('Unable to validate App Keys(ClientID/ClientSecret) provided.: '.$e->getMessage());
 		}
 	}
-	
+
+    function refreshTokenWithOAuth2($forceRefresh = false)
+    {
+        if (property_exists($this, "sdl") && $this->sdl == 0){
+            parent::__construct($this->xmlLoc, array('trace'=>1, 'exceptions'=>0));
+        }
+        try {
+            $currentTime = new DateTime();
+            if (is_null($this->getAuthTokenExpiration($this->tenantKey))){
+                $timeDiff = 0;
+            } else {
+                $timeDiff = $currentTime->diff($this->getAuthTokenExpiration($this->tenantKey))->format('%i');
+                $timeDiff = $timeDiff  + (60 * $currentTime->diff($this->getAuthTokenExpiration($this->tenantKey))->format('%H'));
+            }
+            if (is_null($this->getAuthToken($this->tenantKey)) || ($timeDiff < 5) || $forceRefresh  ){
+
+                $url = rtrim($this->baseAuthUrl, '/')."/v2/token";
+
+                $jsonRequest = new stdClass();
+                $jsonRequest->client_id = $this->clientId;
+                $jsonRequest->client_secret = $this->clientSecret;
+                $jsonRequest->grant_type = "client_credentials";
+
+                if (isset($this->accountId) && trim($this->accountId) !== ''){
+                    $jsonRequest->account_id = $this->accountId;
+				}
+				if (isset($this->scope) && trim($this->scope) !== ''){
+                    $jsonRequest->scope = $this->scope;
+				}
+
+                $authResponse = restPost($url, json_encode($jsonRequest));
+                $authObject = json_decode($authResponse->body);
+
+                if ($authResponse && property_exists($authObject,"access_token")){
+                    $dv = new DateInterval('PT'.$authObject->expires_in.'S');
+                    $newexpTime = new DateTime();
+                    $this->setAuthToken($this->tenantKey, $authObject->access_token, $newexpTime->add($dv));
+                    $this->setInternalAuthToken($this->tenantKey, $authObject->access_token);
+                    $this->baseUrl = $authObject->rest_instance_url;
+                    $this->baseSoapUrl= $authObject->soap_instance_url;
+                } else {
+                    throw new Exception('Unable to validate App Keys(ClientID/ClientSecret) provided, requestToken response:'.$authResponse->body );
+                }
+            }
+        } catch (Exception $e) {
+            throw new Exception('Unable to validate App Keys(ClientID/ClientSecret) provided.: '.$e->getMessage());
+        }
+    }
+
 	function __getLastResponseHTTPCode(){
 
 		return $this->lastHTTPCode;		
@@ -147,7 +267,7 @@ var_dump($authObject);
 			}
 			
 			if ($getNewWSDL){
-				$newWSDL = file_gET_contents($wsdlLoc);
+				$newWSDL = file_get_contents($wsdlLoc);
 				file_put_contents($this->xmlLoc, $newWSDL);
 			}	
 		}
@@ -174,13 +294,20 @@ var_dump($authObject);
 	function __doRequest($request, $location, $saction, $version, $one_way = 0) {
 		$doc = new DOMDocument();
 		$doc->loadXML($request);
-		
-		$objWSSE = new WSSESoap($doc);
-		$objWSSE->addUserToken("*", "*", FALSE);
-		$objWSSE->addOAuth($this->getInternalAuthToken($this->tenantKey));
-				
-		$content = $objWSSE->saveXML();
-		$content_length = strlen($content); 
+
+        if ($this->useOAuth2Authentication) {
+            $this->addOAuth($doc, $this->getAuthToken($this->tenantKey));
+			$content = $doc->saveXML();
+		} else {
+			$objWSSE = new WSSESoap($doc);
+			$objWSSE->addUserToken("*", "*", FALSE);
+			//$objWSSE->addOAuth($this->getInternalAuthToken($this->tenantKey));
+			$this->addOAuth($doc, $this->getInternalAuthToken($this->tenantKey));
+
+			$content = $objWSSE->saveXML();
+		}
+
+		//$content_length = strlen($content); 
 		if ($this->debugSOAP){
 			error_log ('FuelSDK SOAP Request: ');
 			error_log (str_replace($this->getInternalAuthToken($this->tenantKey),"REMOVED",$content));
@@ -201,7 +328,36 @@ var_dump($authObject);
 						
 		return $output;
 	}
-	
+
+	public function addOAuth($doc, $token)
+	{
+		$soapDoc = $doc;
+		$envelope = $doc->documentElement;
+		$soapNS = $envelope->namespaceURI;
+		$soapPFX = $envelope->prefix;
+		$SOAPXPath = new DOMXPath($doc);
+		$SOAPXPath->registerNamespace('wssoap', $soapNS);
+
+		$headers = $SOAPXPath->query('//wssoap:Envelope/wssoap:Header');
+		$header = $headers->item(0);
+		if (! $header) {
+			$header = $soapDoc->createElementNS($soapNS, $soapPFX.':Header');
+			$envelope->insertBefore($header, $envelope->firstChild);
+		}
+
+		if ($this->useOAuth2Authentication){
+            $authnode = $soapDoc->createElementNS('http://exacttarget.com','fueloauth',$token);
+		}
+		else{
+            $SOAPXPath->registerNamespace('wswsse', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd');
+
+            $authnode = $soapDoc->createElementNS('http://exacttarget.com', 'oAuth');
+            $oauthtoken = $soapDoc->createElementNS(null,'oAuthToken',$token);
+            $authnode->appendChild($oauthtoken);
+		}
+		$header->appendChild($authnode);
+	}
+
 	public function getAuthToken($tenantKey = null) {
 		$tenantKey = $tenantKey == null ? $this->tenantKey : $tenantKey;
 		if ($this->tenantTokens[$tenantKey] == null) {
@@ -470,7 +626,7 @@ class ET_OEM_Client extends ET_Client {
 		$additionalQS = array();
 		$additionalQS["access_token"] = $this->getAuthToken();
 		$queryString = http_build_query($additionalQS);		
-		$completeURL = "https://www.exacttargetapis.com/provisioning/v1/tenants/{$key}?{$queryString}";
+		$completeURL = rtrim($this->baseUrl, '/') . "/provisioning/v1/tenants/{$key}?{$queryString}";
 		return new ET_PutRest($this, $completeURL, $tenantInfo);
 	}
 	
@@ -478,7 +634,7 @@ class ET_OEM_Client extends ET_Client {
 		$additionalQS = array();
 		$additionalQS["access_token"] = $this->getAuthToken();
 		$queryString = http_build_query($additionalQS);		
-		$completeURL = "https://www.exacttargetapis.com/provisioning/v1/tenants/?{$queryString}";
+		$completeURL = rtrim($this->baseUrl, '/') . "/provisioning/v1/tenants/?{$queryString}";
 		return new ET_GetRest($this, $completeURL, $queryString);
 	}
 	
